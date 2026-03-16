@@ -1,0 +1,46 @@
+## Workflow (Step-by-step)
+
+### Step 0 — Prepare Area of Interest (AOI) in QGIS
+1. Open QGIS and load a basemap (optional).
+2. Draw your AOI polygon (or load an existing boundary).
+3. Save AOI as: `data/aoi/aoi.geojson` (recommended)
+4. Make sure AOI is in a projected CRS (or keep WGS84 and reproject in Python).
+
+### Step 1 — Acquire Sentinel-2 imagery (Planetary Computer STAC)
+1. Connect to the Microsoft Planetary Computer STAC endpoint.
+2. Search Sentinel-2 L2A scenes using:
+   - AOI geometry
+   - date range
+   - cloud cover threshold (e.g., < 20%)
+3. Load selected scenes as xarray using `stackstac`.
+
+### Step 2 — Preprocess
+1. Reproject/align bands to the same grid (stackstac usually handles this).
+2. Clip the imagery to the AOI.
+3. Optionally mask clouds using SCL (Scene Classification Layer) or cloud probability.
+
+### Step 3 — Compute indices
+- NDVI = (B08 - B04) / (B08 + B04)  → vegetation health
+- NDWI = (B08 - B03) / (B08 + B03)  → relative water content / moisture signal
+
+Outputs saved as GeoTIFF:
+- `outputs/ndvi.tif`
+- `outputs/ndwi.tif`
+
+### Step 4 — Drought stress & irrigation priority
+1. Combine NDVI + NDWI (or apply rules/thresholds) to identify stress.
+2. Classify into irrigation priority zones (example):
+   - High priority: low NDVI + low NDWI
+   - Medium: moderate NDVI/NDWI
+   - Low: healthy vegetation (high NDVI)
+
+Output saved as GeoTIFF:
+- `outputs/irrigation_priority.tif`
+
+### Step 5 — Visualize results (QGIS)
+1. Load GeoTIFF outputs into QGIS (`outputs/*.tif`).
+2. Apply color ramps and classes.
+3. Export map layouts as PNG for the README:
+   - `outputs/screenshots/ndvi.png`
+   - `outputs/screenshots/ndwi.png`
+   - `outputs/screenshots/priority.png`
